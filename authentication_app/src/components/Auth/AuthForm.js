@@ -1,10 +1,16 @@
-import { useRef, useState } from "react";
+import { useState, useRef, useContext } from "react";
+import { useHistory } from "react-router-dom";
 
+import AuthContext from "../../store/auth-context";
 import classes from "./AuthForm.module.css";
 
 const AuthForm = () => {
+  const history = useHistory();
   const emailInputRef = useRef();
   const passwordInputRef = useRef();
+
+  const authCtx = useContext(AuthContext);
+
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -18,45 +24,16 @@ const AuthForm = () => {
     const enteredEmail = emailInputRef.current.value;
     const enteredPassword = passwordInputRef.current.value;
 
-    //optional: Add valiadtaion
+    // optional: Add validation
 
     setIsLoading(true);
     let url;
-
     if (isLogin) {
       url =
         "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyBAkVa1Jir3erKdo3Rh3LhXuAXb1l4Hsf0";
     } else {
       url =
         "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyBAkVa1Jir3erKdo3Rh3LhXuAXb1l4Hsf0";
-      // fetch(
-      //   "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyBAkVa1Jir3erKdo3Rh3LhXuAXb1l4Hsf0",
-      //   {
-      //     method: "POST",
-      //     body: JSON.stringify({
-      //       email: enteredEmail,
-      //       password: enteredPassword,
-      //       returnSecureToken: true,
-      //     }),
-      //     headers: {
-      //       "Content-Type": "application/json",
-      //     },
-      //   }
-      // ).then((res) => {
-      //   setIsLoading(false);
-      //   if (res.ok) {
-      //   } else {
-      //     return res.json().then((data) => {
-      //       //show an error modal
-      //       // console.log(data);
-      //       let errorMessage = "Authentication failed!";
-      //       // if (data && data.error && data.error.message) {
-      //       //   errorMessage = data.error.message;
-      //       // }
-      //       alert(errorMessage);
-      //     });
-      //   }
-      // });
     }
     fetch(url, {
       method: "POST",
@@ -75,18 +52,18 @@ const AuthForm = () => {
           return res.json();
         } else {
           return res.json().then((data) => {
-            //show an error modal
-            // console.log(data);
             let errorMessage = "Authentication failed!";
             // if (data && data.error && data.error.message) {
             //   errorMessage = data.error.message;
             // }
+
             throw new Error(errorMessage);
           });
         }
       })
       .then((data) => {
-        console.log(data);
+        authCtx.login(data.idToken);
+        history.replace("/");
       })
       .catch((err) => {
         alert(err.message);
